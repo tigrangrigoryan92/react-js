@@ -1,6 +1,6 @@
 import React from 'react'
 import Radium from 'radium'
-import classes from './Car.scss'
+import classes from './Car.css'
 
 const Car = props => {
   const inputClasses = [classes.input]
