@@ -7,8 +7,12 @@ const PostForm = ({create}) => {
 
   const addNewPost = (e) => {
     e.preventDefault();
-    create({...post, id: Date.now()});
-    setPost({title: '', body: ''})
+    if (post.title && post.body) {
+      create({...post, id: Date.now()});
+      setPost({title: '', body: ''})
+      return;
+    }
+    alert('Invalid fields')
   }
 
   return (
