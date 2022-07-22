@@ -1,30 +1,33 @@
-import React, {useMemo, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import './styles/App.css'
 import PostList from "./components/PostList";
 import PostForm from "./components/PostForm";
 import PostFilter from "./components/PostFilter";
 import MyModal from "./components/UI/modal/MyModal";
 import MyButton from "./components/UI/button/MyButton";
+import {usePosts} from "./hooks/usePosts";
+import PostService from "./API/PostService";
+import Loader from "./components/UI/loader/Loader";
 
 function App() {
-  const [posts, setPosts] = useState([
-    {id: 2, title: 'A', body: 'D Lorem dolor sit amet.'},
-    {id: 1, title: 'D', body: 'A Lorem ipsum dolor sit amet.'},
-    {id: 4, title: 'B', body: 'C ipsum dolor sit amet.'},
-    {id: 3, title: 'C', body: 'B ipsum dolor sit amet.'},
-  ]);
+  const [posts, setPosts] = useState([]);
   const [filter, setFilter] = useState({sort: '', query: ''})
   const [modal, setModal] = useState(false)
+  const sortedAndSearchedPosts = usePosts(posts, filter.sort, filter.query)
+  const [isPostLoading, setIsPostLoading] = useState(false);
 
-  const sortedPosts = useMemo(() => {
-    if (filter.sort) {
-      return [...posts.sort((a, b) => a[filter.sort].localeCompare(b[filter.sort]))]
-    } return posts
-  }, [filter.sort, posts]);
+  useEffect(() => {
+    fetchPosts()
+  }, [])
 
-  const sortedAndSearchedPosts = useMemo(() => {
-    return sortedPosts.filter((post) => post.title.toLowerCase().includes(filter.query.toLowerCase()))
-  }, [filter.query, sortedPosts])
+  function fetchPosts() {
+    setIsPostLoading(true);
+    setTimeout(async () => {
+      const posts = await PostService.getAll();
+      setPosts(posts)
+      setIsPostLoading(false);
+    }, 1000)
+  }
 
   const createPost = (newPost) => {
     setPosts([...posts, newPost]);
@@ -38,6 +41,11 @@ function App() {
 
   return (
     <div className="App">
+      <MyButton
+        onClick={fetchPosts}
+      >
+        Fetch Data
+      </MyButton>
       <MyButton
         style={{marginTop: '30px'}}
         onClick={() => setModal(true)}
@@ -58,11 +66,15 @@ function App() {
         filter={filter}
         setFilter={setFilter}
       />
-      <PostList
-        title="Post List"
-        posts={sortedAndSearchedPosts}
-        remove={removePost}
-      />
+      {isPostLoading
+        ? <Loader/>
+        : <PostList
+          title="Post List"
+          posts={sortedAndSearchedPosts}
+          remove={removePost}
+        />
+      }
+
     </div>
   );
 }
